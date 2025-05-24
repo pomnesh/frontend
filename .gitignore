@@ -1,0 +1,57 @@
+# ⚙️ node_modules — это **вся дрянь, что npm тянет из интернета**
+node_modules/
+
+# 🏗️ build — это готовый сайт, не надо его хранить
+build/
+
+# 💩 лог-файлы
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 🍪 времянка от IDE
+.DS_Store
+*.swp
+*.swo
+*.log
+
+# 💻 VSCode настройки, если на всех машинах разные
+.vscode/
+
+# 🧪 тестовые покрытия
+coverage/
+
+# 💸 среды, типа .env (пароли, ключи — нахуй в открытый доступ)
+.env
+.env.*.local
+.env.local
+
+# 💉 логи и кэш
+.cache/
+.next/
+dist/
+
+# 🧙‍♂️ TypeScript 
+*.tsbuildinfo
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
