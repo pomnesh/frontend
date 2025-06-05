@@ -9,6 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@vkontakte/vk-bridge": "^2.15.7",
     "@vkontakte/vk-tunnel": "^0.2.6",
+    "@vkontakte/vkui": "^7.3.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "5.0.1",
@@ -38,5 +39,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.1",
+    "cross-env": "^7.0.3"
   }
 }

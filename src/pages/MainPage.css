@@ -1,0 +1,171 @@
+.app-wrapper {
+    font-family: 'Inter', sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: #ffffff;
+    border-bottom: 1px solid #ddd;
+}
+.connect-btn {
+    background: #0077ff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.app {
+    display: flex;
+    flex: 1;
+}
+.sidebar {
+    width: 250px;
+    background: #fff;
+    border-right: 1px solid #ddd;
+    padding: 16px;
+}
+.sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+}
+.sidebar input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+.dialog {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.dialog:hover {
+    background: #f0f0f0;
+}
+.dialog img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.dialog span {
+    font-size: 14px;
+}
+.main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+}
+.header {
+    margin-bottom: 24px;
+}
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+.filters button {
+    background: #eee;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.filters button.active {
+    background: #0077ff;
+    color: white;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+}
+.card {
+    background: #eaeef3;
+    height: 120px;
+    border-radius: 12px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 24px;
+}
+.card::after {
+    content: '\2193';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 16px;
+}
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.modal {
+    background: white;
+    padding: 32px 24px 24px 24px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+}
+.modal h2 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+}
+.modal input {
+    width: 100%;
+    padding: 16px 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-size: 20px;
+    box-sizing: border-box;
+}
+.modal button {
+    width: 100%;
+    background: #0077ff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.modal button:hover {
+    background: #0066dd;
+}
+.modal input:disabled,
+.modal button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+.modal button:disabled {
+    background: #666;
+}
