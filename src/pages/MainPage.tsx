@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import "./MainPage.css";
 
 import { endpoints } from "../api/endpoints.tsx";
@@ -20,6 +20,18 @@ export default function MainPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    if (cookies.bearer_token && cookies.refresh_token) {
+      setShowModal(false);
+    }
+  }, []);
+
   const handleSubmit = async () => {
     if (!username.trim() || !password.trim()) return;
     
@@ -33,9 +45,10 @@ export default function MainPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: username,
-          password: password
-        })
+          username,
+          password
+        }),
+        credentials: 'include'
       });
 
       if (response.status === 401) {
@@ -48,6 +61,7 @@ export default function MainPage() {
 
       if (response.status === 200 && data.payload?.token) {
         document.cookie = `bearer_token=${data.payload.token}; path=/; max-age=604800; secure; samesite=strict`;
+        document.cookie = `refresh_token=${data.payload.refreshToken}; path=/; max-age=2592000; secure; samesite=strict`;
         setShowModal(false);
       }
     } catch (error) {
