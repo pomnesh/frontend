@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import "./MainPage.css";
 import { createMainPageHandlers, VkData } from './MainPage.handlers.ts';
+import { apiClient } from '../api/apiClient.ts';
 
-const dialogs = [
-  { name: "Ivan Petrov", message: "Last message preview here..." },
-  { name: "Daria Smirnova", message: "Photo attached!" },
-  { name: "VK Team", message: "Welcome to VK!" },
-  { name: "Svetlana Ivanova", message: "Check out this document" },
-];
+interface Chat {
+  id: number;
+  name: string;
+  photoUrl: string;
+  type: string;
+  lastMessage: string;
+  unreadCount: number;
+  isGroupChat: boolean;
+}
 
 const filters = ["All", "Photos", "Videos", "Docs", "Audio", "Links"];
 const cards = ["🌄", "🎥", "📄", "🎵", "🔗", "🎵"];
+const PAGE_SIZE = 20;
 
 export default function MainPage() {
   const [showModal, setShowModal] = useState(true);
@@ -23,6 +28,12 @@ export default function MainPage() {
     vkToken: '',
     vkUserId: ''
   });
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [totalChats, setTotalChats] = useState(0);
+  const [offset, setOffset] = useState(0);
+  const [loadingChats, setLoadingChats] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
 
   useEffect(() => {
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -33,8 +44,38 @@ export default function MainPage() {
 
     if (cookies.bearer_token && cookies.refresh_token) {
       setShowModal(false);
+      setChats([]);
+      setOffset(0);
+      setTotalChats(0);
+      loadChats(0);
     }
   }, []);
+
+  const loadChats = async (newOffset: number) => {
+    if (loadingChats) return;
+    setLoadingChats(true);
+    try {
+      const response = await apiClient.getUserChats(newOffset, PAGE_SIZE);
+      if (response?.payload?.items) {
+        setChats(prev => newOffset === 0 ? response.payload.items : [...prev, ...response.payload.items]);
+        setTotalChats(response.payload.totalCount);
+        setOffset(newOffset + response.payload.items.length);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке диалогов:', error);
+    } finally {
+      setLoadingChats(false);
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+      if (!loadingChats && chats.length < totalChats) {
+        loadChats(offset);
+      }
+    }
+  };
 
   const handlers = createMainPageHandlers(
     setShowModal,
@@ -124,14 +165,24 @@ export default function MainPage() {
         </button>
       </header>
       <div className="app">
-        <aside className="sidebar">
+        <aside className="sidebar" ref={sidebarRef} onScroll={handleScroll} style={{overflowY: 'auto', maxHeight: '100vh'}}>
           <h2>Dialogs</h2>
-          <input type="text" placeholder="Search dialogs..." />
-          {dialogs.map((d, i) => (
-            <div className="dialog" key={i}>
-              <span>{d.name}</span>
+          <div className="dialogs-header">
+            <span className="total-chats">Всего диалогов: {totalChats}</span>
+          </div>
+          {chats.map((chat) => (
+            <div 
+              className={`dialog${selectedChatId === chat.id ? ' dialog-selected' : ''}`}
+              key={chat.id}
+              onClick={() => setSelectedChatId(chat.id)}
+            >
+              <img src={chat.photoUrl} alt={chat.name} className="dialog-avatar" />
+              <div className="dialog-info">
+                <span className="dialog-name">{chat.name}</span>
+              </div>
             </div>
           ))}
+          {loadingChats && <div style={{textAlign: 'center', padding: 10}}>Загрузка...</div>}
         </aside>
         <main className="main">
           <div className="header">

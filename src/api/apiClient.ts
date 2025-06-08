@@ -134,6 +134,12 @@ class ApiClient {
     });
   }
 
+  async getUserChats(offset: number = 0, count: number = 2): Promise<any> {
+    return this.request(`${endpoints.getUserChats}?offset=${offset}&count=${count}`, {
+      method: 'GET'
+    });
+  }
+
   async updateUser(userData: { vkToken: string; vkUserId: string }): Promise<any> {
     const userId = this.getCookie('pomnesh_user_id');
     if (!userId) {

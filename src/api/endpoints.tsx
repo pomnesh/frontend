@@ -4,5 +4,6 @@ export const endpoints = {
   login: `${API_BASE}/auth/login`,
   refresh: `${API_BASE}/auth/refresh`,
   updateUser: `${API_BASE}/user/`,
-  getMe: `${API_BASE}/auth/me`
+  getMe: `${API_BASE}/auth/me`,
+  getUserChats: `${API_BASE}/vk/getUserChats`
 }; 
