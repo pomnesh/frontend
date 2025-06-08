@@ -13,6 +13,16 @@ interface Chat {
   isGroupChat: boolean;
 }
 
+interface Attachment {
+  id: number;
+  type: string;
+  url?: string;
+  title?: string;
+  attachmentInfo?: {
+    url: string;
+  };
+}
+
 const filters = ["All", "Photos", "Videos", "Docs", "Audio", "Links"];
 const cards = ["🌄", "🎥", "📄", "🎵", "🔗", "🎵"];
 const PAGE_SIZE = 20;
@@ -34,6 +44,11 @@ export default function MainPage() {
   const [loadingChats, setLoadingChats] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [nextFrom, setNextFrom] = useState<string | null>(null);
+  const [hasMoreAttachments, setHasMoreAttachments] = useState(true);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const attachmentsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -50,6 +65,19 @@ export default function MainPage() {
       loadChats(0);
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedChatId) {
+      setAttachments([]);
+      setNextFrom(null);
+      setHasMoreAttachments(true);
+      loadAttachments(selectedChatId, null);
+    } else {
+      setAttachments([]);
+      setNextFrom(null);
+      setHasMoreAttachments(true);
+    }
+  }, [selectedChatId]);
 
   const loadChats = async (newOffset: number) => {
     if (loadingChats) return;
@@ -68,6 +96,37 @@ export default function MainPage() {
     }
   };
 
+  const loadAttachments = async (peerId: number, startFrom: string | null) => {
+    if (loadingAttachments || !hasMoreAttachments) return;
+    setLoadingAttachments(true);
+    const count = 20;
+    let url = `https://pomnesh-backend.hps-2.ru/api/v1/vk/getAttachments?peerId=${peerId}&count=${count}&includeForwards=true`;
+    if (startFrom) {
+      url += `&startFrom=${encodeURIComponent(startFrom)}`;
+    }
+    try {
+      const response = await apiClient.request(url, { method: 'GET' });
+      if (response?.payload?.items) {
+        setAttachments(prev => !startFrom ? response.payload.items : [...prev, ...response.payload.items]);
+        if (response.payload.nextFrom) {
+          setNextFrom(response.payload.nextFrom);
+          setHasMoreAttachments(true);
+        } else {
+          setNextFrom(null);
+          setHasMoreAttachments(false);
+        }
+      } else {
+        if (!startFrom) setAttachments([]);
+        setHasMoreAttachments(false);
+      }
+    } catch (error) {
+      if (!startFrom) setAttachments([]);
+      setHasMoreAttachments(false);
+    } finally {
+      setLoadingAttachments(false);
+    }
+  };
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
@@ -76,6 +135,18 @@ export default function MainPage() {
       }
     }
   };
+
+  const handleAttachmentsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+      if (!loadingAttachments && hasMoreAttachments && selectedChatId) {
+        loadAttachments(selectedChatId, nextFrom);
+      }
+    }
+  };
+
+  const photoCount = attachments.filter(att => att.type === 'photo' && att.attachmentInfo?.url).length;
+  const needScroll = photoCount > 12;
 
   const handlers = createMainPageHandlers(
     setShowModal,
@@ -187,26 +258,27 @@ export default function MainPage() {
         <main className="main">
           <div className="header">
             <h1>
-              Ivan Petrov
-              <br />
-              <span style={{ fontSize: 14, color: "#777" }}>
-                Viewing attachments
-              </span>
+              {selectedChatId ? chats.find(c => c.id === selectedChatId)?.name || '' : ''}
             </h1>
           </div>
-          <div className="filters">
-            {filters.map((filter, idx) => (
-              <button key={idx} className={idx === 0 ? "active" : ""}>
-                {filter}
-              </button>
-            ))}
-          </div>
-          <div className="grid">
-            {cards.map((icon, i) => (
-              <div className="card" key={i}>
-                <span>{icon}</span>
-              </div>
-            ))}
+          <div
+            style={needScroll ? {maxHeight:'80vh', overflowY:'auto'} : {overflowY:'auto'}}
+            ref={attachmentsRef}
+            onScroll={handleAttachmentsScroll}
+          >
+            <div className="masonry-grid">
+              {attachments.filter(att => att.type === 'photo' && att.attachmentInfo?.url).length === 0 && !loadingAttachments && (
+                <div style={{color:'#aaa',textAlign:'center',width:'100%'}}>Нет фотографий</div>
+              )}
+              {attachments.map((att, i) => (
+                att.type === 'photo' && att.attachmentInfo?.url ? (
+                  <div className="masonry-item" key={att.id || i}>
+                    <img src={att.attachmentInfo.url} alt="preview" />
+                  </div>
+                ) : null
+              ))}
+              {loadingAttachments && <div style={{textAlign:'center',width:'100%',padding:10}}>Загрузка...</div>}
+            </div>
           </div>
         </main>
       </div>

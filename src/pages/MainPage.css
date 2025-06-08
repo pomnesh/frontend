@@ -104,8 +104,28 @@
 }
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    background: #f6f8fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    overflow-y: auto;
+    max-height: 60vh;
+    min-height: 300px;
+    scrollbar-width: thin;
+    scrollbar-color: #5181b8 #eaeaea;
+}
+.grid::-webkit-scrollbar {
+    width: 8px;
+}
+.grid::-webkit-scrollbar-thumb {
+    background: #5181b8;
+    border-radius: 4px;
+}
+.grid::-webkit-scrollbar-track {
+    background: #eaeaea;
+    border-radius: 4px;
 }
 .card {
     background: #eaeef3;
@@ -213,4 +233,33 @@
 }
 .dialog-selected .dialog-info {
     color: #fff;
+}
+.masonry-grid {
+    column-count: 4;
+    column-gap: 16px;
+    padding: 20px 0;
+}
+@media (max-width: 900px) {
+    .masonry-grid {
+        column-count: 2;
+    }
+}
+@media (max-width: 600px) {
+    .masonry-grid {
+        column-count: 1;
+    }
+}
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 16px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.masonry-item img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
 }
