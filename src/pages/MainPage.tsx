@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import "./MainPage.css";
-
-import { endpoints } from "../api/endpoints.tsx";
+import { createMainPageHandlers, VkData } from './MainPage.handlers.ts';
 
 const dialogs = [
   { name: "Ivan Petrov", message: "Last message preview here..." },
@@ -15,10 +14,15 @@ const cards = ["🌄", "🎥", "📄", "🎵", "🔗", "🎵"];
 
 export default function MainPage() {
   const [showModal, setShowModal] = useState(true);
+  const [showVkModal, setShowVkModal] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [vkData, setVkData] = useState<VkData>({
+    vkToken: '',
+    vkUserId: ''
+  });
 
   useEffect(() => {
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -32,44 +36,16 @@ export default function MainPage() {
     }
   }, []);
 
-  const handleSubmit = async () => {
-    if (!username.trim() || !password.trim()) return;
-    
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const response = await fetch(endpoints.login, {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          password
-        }),
-        credentials: 'include'
-      });
-
-      if (response.status === 401) {
-        setError('Неправильный пароль');
-        return;
-      }
-
-      const data = await response.json();
-      console.log('Ответ сервера:', data);
-
-      if (response.status === 200 && data.payload?.token) {
-        document.cookie = `bearer_token=${data.payload.token}; path=/; max-age=604800; secure; samesite=strict`;
-        document.cookie = `refresh_token=${data.payload.refreshToken}; path=/; max-age=2592000; secure; samesite=strict`;
-        setShowModal(false);
-      }
-    } catch (error) {
-      console.error('Ошибка при запросе:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handlers = createMainPageHandlers(
+    setShowModal,
+    setShowVkModal,
+    setUsername,
+    setPassword,
+    setIsLoading,
+    setError,
+    setVkData,
+    vkData
+  );
 
   return (
     <div className="app-wrapper">
@@ -93,7 +69,7 @@ export default function MainPage() {
             />
             {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
             <button 
-              onClick={handleSubmit}
+              onClick={() => handlers.handleSubmit(username, password)}
               disabled={isLoading}
             >
               {isLoading ? 'Загрузка...' : 'Продолжить'}
@@ -101,9 +77,51 @@ export default function MainPage() {
           </div>
         </div>
       )}
+      {showVkModal && (
+        <div className="modal-overlay" onClick={handlers.handleVkModalClose}>
+          <div className="modal">
+            <h2>Настройки VK</h2>
+            <div className="input-group">
+              <label>ID пользователя VK</label>
+              <input
+                type="text"
+                name="vkUserId"
+                placeholder="VK id"
+                value={vkData.vkUserId}
+                onChange={handlers.handleVkDataChange}
+                disabled={isLoading}
+              />
+            </div>
+            <div className="input-group">
+              <label>Токен доступа VK</label>
+              <input
+                type="text"
+                name="vkToken"
+                placeholder="VK Access Token"
+                value={vkData.vkToken}
+                onChange={handlers.handleVkDataChange}
+                disabled={isLoading}
+              />
+            </div>
+            {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+            <button 
+              onClick={() => handlers.handleVkDataSubmit(vkData)}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Сохранение...' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      )}
       <header className="site-header">
         <h1>VK Attachments Viewer</h1>
-        <button className="connect-btn">Connect VK</button>
+        <button 
+          className="connect-btn" 
+          onClick={handlers.handleVkModalOpen}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Загрузка...' : 'Connect VK'}
+        </button>
       </header>
       <div className="app">
         <aside className="sidebar">

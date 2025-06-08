@@ -118,10 +118,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 1000;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -130,42 +130,52 @@
     background: white;
     padding: 32px 24px 24px 24px;
     border-radius: 12px;
-    width: 100%;
-    max-width: 400px;
+    min-width: 300px;
+    max-width: 500px;
+    width: 90%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     box-sizing: border-box;
 }
 .modal h2 {
     margin: 0 0 20px 0;
     font-size: 20px;
+    text-align: center;
 }
 .modal input {
     width: 100%;
     padding: 16px 14px;
+    margin-bottom: 24px;
     border: 1px solid #ddd;
     border-radius: 12px;
-    margin-bottom: 24px;
-    font-size: 20px;
+    font-size: 16px;
     box-sizing: border-box;
 }
 .modal button {
     width: 100%;
+    padding: 12px;
     background: #0077ff;
     color: white;
     border: none;
-    padding: 12px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
 }
-.modal button:hover {
+.modal button:hover:not(:disabled) {
     background: #0066dd;
-}
-.modal input:disabled,
-.modal button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
 }
 .modal button:disabled {
     background: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.input-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    width: 100%;
+}
+.input-group label {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #666;
 }
