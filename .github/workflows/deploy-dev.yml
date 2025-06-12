@@ -63,5 +63,5 @@ jobs:
           
             docker run -d \
               --name pomnesh-frontend \
-              -p 8080:80 \
+              -p 9000:80 \
               ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} 
