@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import "./MainPage.css";
 import { createMainPageHandlers, VkData } from './MainPage.handlers.ts';
 import { apiClient } from '../api/apiClient.ts';
+import Hls from 'hls.js';
 
 interface Chat {
   id: number;
@@ -29,6 +30,7 @@ interface Attachment {
     description?: string;
     duration?: number;
     photoUrl?: string | null;
+    artist?: string;
   };
   messageId: number | null;
   fromId: number | null;
@@ -97,21 +99,19 @@ export default function MainPage() {
     if (startFrom) {
       url += `&startFrom=${encodeURIComponent(startFrom)}`;
     }
-    url += `&types=${selectedType}`;
-    console.log('Request URL:', url);
+    if (selectedType !== null) {
+      url += `&types=${selectedType}`;
+    }
     try {
       const response = await apiClient.request(url, { method: 'GET' });
       if (response?.payload?.items) {
         preloadImages(response.payload.items);
-        
         setAttachments(prev => {
           if (!startFrom) {
-            console.log('New attachments:', response.payload.items);
             return response.payload.items;
           }
           return [...prev, ...response.payload.items];
         });
-
         if (response.payload.nextFrom) {
           setNextFrom(response.payload.nextFrom);
           setHasMoreAttachments(true);
@@ -283,7 +283,6 @@ export default function MainPage() {
                 e.currentTarget.classList.add('loaded');
               }}
             />
-            <div className="masonry-item-type">Фото</div>
           </div>
         ) : null;
 
@@ -306,7 +305,6 @@ export default function MainPage() {
                 <div className="video-description">{att.attachmentInfo.description}</div>
               )}
             </div>
-            <div className="masonry-item-type">Видео</div>
           </div>
         );
 
@@ -317,13 +315,13 @@ export default function MainPage() {
             key={att.id || i}
             onClick={() => handleAttachmentClick(att)}
           >
-            <div className="audio-info">
-              <div className="audio-title">{att.attachmentInfo?.title || 'Без названия'}</div>
-              {att.attachmentInfo?.description && (
-                <div className="audio-description">{att.attachmentInfo.description}</div>
-              )}
+            <div className="audio-neutral-preview">
+              <span className="audio-neutral-icon">🎵</span>
             </div>
-            <div className="masonry-item-type">Аудио</div>
+            <div className="audio-title">
+              {att.attachmentInfo?.artist ? `${att.attachmentInfo.artist} — ` : ''}
+              {att.attachmentInfo?.title || 'Без названия'}
+            </div>
           </div>
         );
 
@@ -340,7 +338,6 @@ export default function MainPage() {
               </div>
               <div className="audio-message-play-icon">▶</div>
             </div>
-            <div className="masonry-item-type">Голосовое</div>
           </div>
         );
 
@@ -357,7 +354,6 @@ export default function MainPage() {
                 <div className="doc-description">{att.attachmentInfo.description}</div>
               )}
             </div>
-            <div className="masonry-item-type">Документ</div>
           </div>
         );
 
@@ -522,28 +518,47 @@ export default function MainPage() {
           </div>
         </main>
       </div>
-      {selectedAttachment && selectedAttachment.attachmentInfo?.url && (
+      {selectedAttachment && (
         <div className="attachment-modal-overlay" onClick={handleCloseAttachment}>
           <div className="attachment-modal" onClick={e => e.stopPropagation()}>
             <button className="attachment-modal-close" onClick={handleCloseAttachment}>×</button>
             <div className="attachment-modal-content">
-              <div className="attachment-modal-image-container">
-                <img 
-                  src={selectedAttachment.attachmentInfo.url} 
-                  alt="full size" 
-                  className="attachment-modal-image"
-                />
-              </div>
+              {selectedAttachment.type === 'photo' && selectedAttachment.attachmentInfo?.url && (
+                <div className="attachment-modal-image-container">
+                  <img 
+                    src={selectedAttachment.attachmentInfo.url} 
+                    alt="full size" 
+                    className="attachment-modal-image"
+                  />
+                </div>
+              )}
+              {selectedAttachment.type === 'audio' && (
+                <div className="attachment-modal-image-container">
+                  <div className="audio-neutral-preview" style={{marginBottom: 0}}>
+                    <span className="audio-neutral-icon">🎵</span>
+                  </div>
+                </div>
+              )}
               <div className="attachment-modal-info">
                 <h3>Информация</h3>
                 <div className="info-grid">
-                  <div className="info-item">
-                    <span className="info-label">Размеры</span>
-                    <span className="info-value">{selectedAttachment.attachmentInfo.width} × {selectedAttachment.attachmentInfo.height}</span>
-                  </div>
+                  {selectedAttachment.type === 'audio' ? (
+                    <div className="info-item">
+                      <span className="info-label">Трек</span>
+                      <span className="info-value">
+                        {selectedAttachment.attachmentInfo?.artist ? `${selectedAttachment.attachmentInfo.artist} — ` : ''}
+                        {selectedAttachment.attachmentInfo?.title || 'Без названия'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="info-item">
+                      <span className="info-label">Размеры</span>
+                      <span className="info-value">{selectedAttachment.attachmentInfo?.width} × {selectedAttachment.attachmentInfo?.height}</span>
+                    </div>
+                  )}
                   <div className="info-item">
                     <span className="info-label">ID владельца</span>
-                    <span className="info-value">{selectedAttachment.attachmentInfo.ownerId}</span>
+                    <span className="info-value">{selectedAttachment.attachmentInfo?.ownerId}</span>
                   </div>
                   {selectedAttachment.messageId && (
                     <div className="info-item">
@@ -578,5 +593,49 @@ export default function MainPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function AudioPlayer({ url }: { url: string }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (audioRef.current && Hls.isSupported() && url.endsWith('.m3u8')) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(audioRef.current);
+      return () => {
+        hls.destroy();
+      };
+    }
+  }, [url]);
+  // Safari поддерживает m3u8 нативно
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isM3u8 = url.endsWith('.m3u8');
+  const audioSrc = (!isM3u8) ? url : (isSafari ? url : undefined);
+  return (
+    <>
+      <button
+        className="audio-play-icon"
+        onClick={() => {
+          if (audioRef.current) {
+            if (audioRef.current.paused) {
+              audioRef.current.play();
+              setPlaying(true);
+            } else {
+              audioRef.current.pause();
+              setPlaying(false);
+            }
+          }
+        }}
+        title={playing ? 'Пауза' : 'Слушать'}
+      >{playing ? '❚❚' : '▶'}</button>
+      <audio
+        ref={audioRef}
+        src={audioSrc}
+        style={{ display: 'none' }}
+        preload="none"
+      />
+    </>
   );
 }

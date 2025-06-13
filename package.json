@@ -10,6 +10,7 @@
     "@vkontakte/vk-bridge": "^2.15.7",
     "@vkontakte/vk-tunnel": "^0.2.6",
     "@vkontakte/vkui": "^7.3.7",
+    "hls.js": "^1.6.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-scripts": "5.0.1",
