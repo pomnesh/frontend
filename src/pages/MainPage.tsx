@@ -66,6 +66,7 @@ export default function MainPage() {
   const attachmentsRef = useRef<HTMLDivElement>(null);
   const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null);
   const [selectedType, setSelectedType] = useState<number>(0);
+  const [includeForwards, setIncludeForwards] = useState(false);
 
   const loadChats = useCallback(async (newOffset: number) => {
     if (loadingChats) return;
@@ -97,7 +98,12 @@ export default function MainPage() {
     if (loadingAttachments || !hasMoreAttachments) return;
     setLoadingAttachments(true);
     const count = 100;
-    let url = `https://pomnesh-backend.hps-2.ru/api/v1/vk/getAttachments?peerId=${peerId}&count=${count}&includeForwards=true`;
+    let url = `https://pomnesh-backend.hps-2.ru/api/v1/vk/getAttachments?peerId=${peerId}&count=${count}`;
+    if (includeForwards) {
+      url += `&includeForwards=true`;
+    } else {
+      url += `&includeForwards=false`;
+    }
     if (startFrom) {
       url += `&startFrom=${encodeURIComponent(startFrom)}`;
     }
@@ -131,7 +137,7 @@ export default function MainPage() {
     } finally {
       setLoadingAttachments(false);
     }
-  }, [hasMoreAttachments, selectedType]);
+  }, [hasMoreAttachments, selectedType, includeForwards]);
 
   useEffect(() => {
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -357,9 +363,6 @@ export default function MainPage() {
               {att.attachmentInfo?.ext && <span className="doc-ext">.{att.attachmentInfo.ext}</span>}
               {att.attachmentInfo?.size !== undefined && <span className="doc-size">{(att.attachmentInfo.size > 1024*1024 ? (att.attachmentInfo.size/1024/1024).toFixed(2)+' МБ' : (att.attachmentInfo.size/1024).toFixed(1)+' КБ')}</span>}
             </div>
-            {att.attachmentInfo?.url && (
-              <a className="doc-download" href={att.attachmentInfo.url} target="_blank" rel="noopener noreferrer">Открыть/скачать</a>
-            )}
           </div>
         );
 
@@ -500,6 +503,16 @@ export default function MainPage() {
                   {type.label}
                 </button>
               ))}
+              <div className="include-forwards-toggle">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={includeForwards}
+                    onChange={e => setIncludeForwards(e.target.checked)}
+                  />
+                  <span>Включать пересланные</span>
+                </label>
+              </div>
             </div>
           )}
           <div
@@ -581,12 +594,6 @@ export default function MainPage() {
                           <span className="info-value">{selectedAttachment.attachmentInfo.size > 1024*1024 ? (selectedAttachment.attachmentInfo.size/1024/1024).toFixed(2)+' МБ' : (selectedAttachment.attachmentInfo.size/1024).toFixed(1)+' КБ'}</span>
                         </div>
                       )}
-                      {selectedAttachment.attachmentInfo?.url && (
-                        <div className="info-item">
-                          <span className="info-label">Ссылка</span>
-                          <span className="info-value"><a href={selectedAttachment.attachmentInfo.url} target="_blank" rel="noopener noreferrer">Открыть/скачать</a></span>
-                        </div>
-                      )}
                     </>
                   ) : (
                     <div className="info-item">
@@ -624,6 +631,12 @@ export default function MainPage() {
                       </span>
                     </div>
                   )}
+                </div>
+                <div className="info-item" style={{justifyContent: 'center', display: 'flex'}}>
+                  <span className="info-label">&nbsp;</span>
+                  <span className="info-value">
+                    <a className="doc-download" href={selectedAttachment.attachmentInfo?.url} target="_blank" rel="noopener noreferrer">Скачать</a>
+                  </span>
                 </div>
               </div>
             </div>

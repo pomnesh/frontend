@@ -527,29 +527,56 @@
     gap: 8px;
     padding: 0 24px 8px 24px;
     border-bottom: none;
+    align-items: center;
 }
 
 .filter-button {
-    padding: 8px 16px;
-    border: 1px solid #3a3a3a;
-    border-radius: 20px;
-    background: transparent;
-    color: #888;
-    font-size: 14px;
+    padding: 8px 28px;
+    border: 2px solid #d3e2fd;
+    border-radius: 22px;
+    background: #f6f9fe;
+    color: #2556b8;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
+    box-shadow: 0 1px 4px rgba(58,123,253,0.04);
+    margin-bottom: 0;
 }
 
 .filter-button:hover {
-    background: #2a2a2a;
-    color: #fff;
-    border-color: #4a4a4a;
+    background: #e3edfd;
+    color: #1741a6;
+    border-color: #a6c8fa;
 }
 
 .filter-button.active {
-    background: #3a3a3a;
+    background: #3a7bfd;
     color: #fff;
-    border-color: #4a4a4a;
+    border-color: #3a7bfd;
+    box-shadow: 0 2px 8px rgba(58,123,253,0.10);
+}
+
+.include-forwards-toggle {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    color: #444;
+}
+
+.include-forwards-toggle label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.include-forwards-toggle input[type="checkbox"] {
+    accent-color: #3a7bfd;
+    width: 18px;
+    height: 18px;
 }
 
 .masonry-item-type {
@@ -838,4 +865,24 @@
 
 .attachment-modal-image-container .doc-neutral-icon {
     font-size: 80px;
+}
+
+.attachment-modal-info .doc-download {
+    display: block;
+    margin: 18px auto 18px auto;
+    padding: 12px 32px;
+    background: #3a7bfd;
+    color: #fff !important;
+    border-radius: 7px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(58,123,253,0.10);
+}
+
+.attachment-modal-info .doc-download:hover {
+    background: #2556b8;
+    color: #fff !important;
 }
