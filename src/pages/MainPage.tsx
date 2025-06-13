@@ -68,7 +68,7 @@ export default function MainPage() {
   const loadAttachments = useCallback(async (peerId: number, startFrom: string | null) => {
     if (loadingAttachments || !hasMoreAttachments) return;
     setLoadingAttachments(true);
-    const count = 20;
+    const count = 100;
     let url = `https://pomnesh-backend.hps-2.ru/api/v1/vk/getAttachments?peerId=${peerId}&count=${count}&includeForwards=true`;
     if (startFrom) {
       url += `&startFrom=${encodeURIComponent(startFrom)}`;
@@ -136,7 +136,11 @@ export default function MainPage() {
 
   const handleAttachmentsScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
+    const scrollPosition = el.scrollTop + el.clientHeight;
+    const scrollHeight = el.scrollHeight;
+    const threshold = scrollHeight * 0.7;
+
+    if (scrollPosition >= threshold) {
       if (!loadingAttachments && hasMoreAttachments && selectedChatId) {
         loadAttachments(selectedChatId, nextFrom);
       }
