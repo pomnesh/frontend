@@ -20,7 +20,16 @@ interface Attachment {
   title?: string;
   attachmentInfo?: {
     url: string;
+    width: number;
+    height: number;
+    id: number;
+    ownerId: number;
+    accessKey: string;
   };
+  messageId: number | null;
+  fromId: number | null;
+  date: number | null;
+  isForwarded: boolean;
 }
 
 const PAGE_SIZE = 20;
@@ -332,7 +341,19 @@ export default function MainPage() {
               )}
               {attachments.map((att, i) => (
                 att.type === 'photo' && att.attachmentInfo?.url ? (
-                  <div className="masonry-item" key={att.id || i}>
+                  <div 
+                    className="masonry-item" 
+                    key={att.id || i}
+                    data-attachment-id={att.attachmentInfo.id}
+                    data-owner-id={att.attachmentInfo.ownerId}
+                    data-access-key={att.attachmentInfo.accessKey}
+                    data-message-id={att.messageId}
+                    data-from-id={att.fromId}
+                    data-date={att.date}
+                    data-is-forwarded={att.isForwarded}
+                    data-width={att.attachmentInfo.width}
+                    data-height={att.attachmentInfo.height}
+                  >
                     <img 
                       src={att.attachmentInfo.url} 
                       alt="preview" 
