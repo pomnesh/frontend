@@ -67,6 +67,9 @@ export default function MainPage() {
   const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null);
   const [selectedType, setSelectedType] = useState<number>(0);
   const [includeForwards, setIncludeForwards] = useState(false);
+  const [filterAnimating, setFilterAnimating] = useState(false);
+  const [displayedAttachments, setDisplayedAttachments] = useState<Attachment[]>(attachments);
+  const prevType = useRef(selectedType);
 
   const loadChats = useCallback(async (newOffset: number) => {
     if (loadingChats) return;
@@ -112,7 +115,8 @@ export default function MainPage() {
     }
     try {
       const response = await apiClient.request(url, { method: 'GET' });
-      if (response?.payload?.items) {
+      console.log('Ответ от бэка:', response);
+      if (response?.payload?.items && response.payload.items.length > 0) {
         preloadImages(response.payload.items);
         setAttachments(prev => {
           if (!startFrom) {
@@ -128,10 +132,12 @@ export default function MainPage() {
           setHasMoreAttachments(false);
         }
       } else {
+        console.log('Нет вложений или items пустой, останавливаю загрузку');
         if (!startFrom) setAttachments([]);
         setHasMoreAttachments(false);
       }
     } catch (error) {
+      console.log('Ошибка при загрузке вложений:', error);
       if (!startFrom) setAttachments([]);
       setHasMoreAttachments(false);
     } finally {
@@ -156,17 +162,21 @@ export default function MainPage() {
   }, [loadChats]);
 
   useEffect(() => {
-    if (selectedChatId) {
-      setAttachments([]);
+    if (!selectedChatId) {
+      if (attachments.length !== 0) setAttachments([]);
       setNextFrom(null);
       setHasMoreAttachments(true);
-      loadAttachments(selectedChatId, null);
-    } else {
-      setAttachments([]);
-      setNextFrom(null);
-      setHasMoreAttachments(true);
+      return;
     }
-  }, [selectedChatId, loadAttachments, selectedType]);
+    // сбрасываем только если реально сменился чат или фильтр
+    setAttachments([]);
+    setNextFrom(null);
+    setHasMoreAttachments(true);
+    if (hasMoreAttachments) {
+      loadAttachments(selectedChatId, null);
+    }
+  // eslint-disable-next-line
+  }, [selectedChatId, selectedType]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -198,6 +208,7 @@ export default function MainPage() {
   };
 
   const handleAttachmentsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!hasMoreAttachments && attachments.length === 0) return;
     const el = e.currentTarget;
     const scrollPosition = el.scrollTop + el.clientHeight;
     const scrollHeight = el.scrollHeight;
@@ -371,6 +382,19 @@ export default function MainPage() {
     }
   };
 
+  useEffect(() => {
+    if (prevType.current !== selectedType) {
+      setFilterAnimating(true);
+      setTimeout(() => {
+        setDisplayedAttachments(attachments);
+        setFilterAnimating(false);
+        prevType.current = selectedType;
+      }, 250);
+    } else {
+      setDisplayedAttachments(attachments);
+    }
+  }, [attachments, selectedType]);
+
   return (
     <div className="app-wrapper">
       {showModal && (
@@ -409,17 +433,6 @@ export default function MainPage() {
           <div className="modal">
             <h2>Настройки VK</h2>
             <div className="input-group">
-              <label>ID пользователя VK</label>
-              <input
-                type="text"
-                name="vkUserId"
-                placeholder="VK id"
-                value={vkData.vkUserId}
-                onChange={handlers.handleVkDataChange}
-                disabled={isLoading}
-              />
-            </div>
-            <div className="input-group">
               <label>Токен доступа VK</label>
               <input
                 type="text"
@@ -441,7 +454,7 @@ export default function MainPage() {
         </div>
       )}
       <header className="site-header">
-        <h1>VK Attachments Viewer</h1>
+        <h1>Pomnesh</h1>
         <div className="header-buttons">
           <button 
             className="connect-btn" 
@@ -461,7 +474,7 @@ export default function MainPage() {
       </header>
       <div className="app">
         <aside className="sidebar" ref={sidebarRef} onScroll={handleScroll} style={{overflowY: 'auto', maxHeight: '100vh'}}>
-          <h2>Dialogs</h2>
+          <h2>Диалоги</h2>
           <div className="dialogs-header">
             <span className="total-chats">Всего диалогов: {totalChats}</span>
           </div>
@@ -524,7 +537,9 @@ export default function MainPage() {
               {attachments.length === 0 && !loadingAttachments && (
                 <div style={{color:'#aaa',textAlign:'center',width:'100%'}}>Нет вложений</div>
               )}
-              {attachments.map((att, i) => renderAttachment(att, i))}
+              {(filterAnimating ? displayedAttachments : attachments).map((att, i) => (
+                <div key={att.id || i} className={`masonry-item${filterAnimating ? ' fade-out' : ' fade-in'}`}>{renderAttachment(att, i)}</div>
+              ))}
               {loadingAttachments && (
                 <div className="loading-indicator">
                   Загрузка
