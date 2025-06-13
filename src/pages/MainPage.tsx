@@ -56,6 +56,7 @@ export default function MainPage() {
   const [hasMoreAttachments, setHasMoreAttachments] = useState(true);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const attachmentsRef = useRef<HTMLDivElement>(null);
+  const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null);
 
   const loadChats = useCallback(async (newOffset: number) => {
     if (loadingChats) return;
@@ -152,10 +153,14 @@ export default function MainPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setSelectedChatId(null);
-        setAttachments([]);
-        setNextFrom(null);
-        setHasMoreAttachments(true);
+        if (selectedAttachment) {
+          setSelectedAttachment(null);
+        } else {
+          setSelectedChatId(null);
+          setAttachments([]);
+          setNextFrom(null);
+          setHasMoreAttachments(true);
+        }
       }
     };
 
@@ -163,7 +168,7 @@ export default function MainPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [selectedAttachment]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -207,6 +212,14 @@ export default function MainPage() {
     setOffset(0);
     setTotalChats(0);
     await loadChats(0);
+  };
+
+  const handleAttachmentClick = (attachment: Attachment) => {
+    setSelectedAttachment(attachment);
+  };
+
+  const handleCloseAttachment = () => {
+    setSelectedAttachment(null);
   };
 
   return (
@@ -353,6 +366,7 @@ export default function MainPage() {
                     data-is-forwarded={att.isForwarded}
                     data-width={att.attachmentInfo.width}
                     data-height={att.attachmentInfo.height}
+                    onClick={() => handleAttachmentClick(att)}
                   >
                     <img 
                       src={att.attachmentInfo.url} 
@@ -378,6 +392,61 @@ export default function MainPage() {
           </div>
         </main>
       </div>
+      {selectedAttachment && selectedAttachment.attachmentInfo?.url && (
+        <div className="attachment-modal-overlay" onClick={handleCloseAttachment}>
+          <div className="attachment-modal" onClick={e => e.stopPropagation()}>
+            <button className="attachment-modal-close" onClick={handleCloseAttachment}>×</button>
+            <div className="attachment-modal-content">
+              <div className="attachment-modal-image-container">
+                <img 
+                  src={selectedAttachment.attachmentInfo.url} 
+                  alt="full size" 
+                  className="attachment-modal-image"
+                />
+              </div>
+              <div className="attachment-modal-info">
+                <h3>Информация</h3>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <span className="info-label">Размеры</span>
+                    <span className="info-value">{selectedAttachment.attachmentInfo.width} × {selectedAttachment.attachmentInfo.height}</span>
+                  </div>
+                  <div className="info-item">
+                    <span className="info-label">ID владельца</span>
+                    <span className="info-value">{selectedAttachment.attachmentInfo.ownerId}</span>
+                  </div>
+                  {selectedAttachment.messageId && (
+                    <div className="info-item">
+                      <span className="info-label">ID сообщения</span>
+                      <span className="info-value">{selectedAttachment.messageId}</span>
+                    </div>
+                  )}
+                  {selectedAttachment.fromId && (
+                    <div className="info-item">
+                      <span className="info-label">ID отправителя</span>
+                      <span className="info-value">{selectedAttachment.fromId}</span>
+                    </div>
+                  )}
+                  {selectedAttachment.date && (
+                    <div className="info-item">
+                      <span className="info-label">Дата</span>
+                      <span className="info-value">
+                        {new Date(selectedAttachment.date * 1000).toLocaleString('ru-RU', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

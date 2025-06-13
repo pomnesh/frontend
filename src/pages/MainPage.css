@@ -390,3 +390,129 @@
         column-count: 1;
     }
 }
+
+.attachment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+}
+
+.attachment-modal {
+    position: relative;
+    max-width: 95vw;
+    max-height: 95vh;
+    animation: scaleIn 0.3s ease;
+    background: #1a1a1a;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.attachment-modal-content {
+    display: flex;
+    gap: 24px;
+    padding: 24px;
+}
+
+.attachment-modal-image-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.attachment-modal-image {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.attachment-modal-info {
+    width: 280px;
+    background: #242424;
+    padding: 24px;
+    border-radius: 12px;
+    color: #fff;
+}
+
+.attachment-modal-info h3 {
+    margin: 0 0 24px 0;
+    font-size: 20px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-label {
+    font-size: 13px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 15px;
+    color: #fff;
+    word-break: break-all;
+    font-weight: 500;
+}
+
+.attachment-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px 12px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.attachment-modal-close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+    }
+    to {
+        transform: scale(1);
+    }
+}
