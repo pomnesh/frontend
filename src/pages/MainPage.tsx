@@ -19,12 +19,16 @@ interface Attachment {
   url?: string;
   title?: string;
   attachmentInfo?: {
-    url: string;
-    width: number;
-    height: number;
+    url?: string;
+    width?: number;
+    height?: number;
     id: number;
     ownerId: number;
     accessKey: string;
+    title?: string;
+    description?: string;
+    duration?: number;
+    photoUrl?: string | null;
   };
   messageId: number | null;
   fromId: number | null;
@@ -57,6 +61,7 @@ export default function MainPage() {
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const attachmentsRef = useRef<HTMLDivElement>(null);
   const [selectedAttachment, setSelectedAttachment] = useState<Attachment | null>(null);
+  const [selectedType, setSelectedType] = useState<number>(0);
 
   const loadChats = useCallback(async (newOffset: number) => {
     if (loadingChats) return;
@@ -92,13 +97,18 @@ export default function MainPage() {
     if (startFrom) {
       url += `&startFrom=${encodeURIComponent(startFrom)}`;
     }
+    url += `&types=${selectedType}`;
+    console.log('Request URL:', url);
     try {
       const response = await apiClient.request(url, { method: 'GET' });
       if (response?.payload?.items) {
         preloadImages(response.payload.items);
         
         setAttachments(prev => {
-          if (!startFrom) return response.payload.items;
+          if (!startFrom) {
+            console.log('New attachments:', response.payload.items);
+            return response.payload.items;
+          }
           return [...prev, ...response.payload.items];
         });
 
@@ -119,7 +129,7 @@ export default function MainPage() {
     } finally {
       setLoadingAttachments(false);
     }
-  }, [hasMoreAttachments]);
+  }, [hasMoreAttachments, selectedType]);
 
   useEffect(() => {
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -148,7 +158,7 @@ export default function MainPage() {
       setNextFrom(null);
       setHasMoreAttachments(true);
     }
-  }, [selectedChatId, loadAttachments]);
+  }, [selectedChatId, loadAttachments, selectedType]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -215,11 +225,145 @@ export default function MainPage() {
   };
 
   const handleAttachmentClick = (attachment: Attachment) => {
+    if (attachment.type === 'video' && attachment.attachmentInfo) {
+      const videoUrl = `https://vk.com/video${attachment.attachmentInfo.ownerId}_${attachment.attachmentInfo.id}?hash=${attachment.attachmentInfo.accessKey}`;
+      window.open(videoUrl, '_blank');
+      return;
+    }
     setSelectedAttachment(attachment);
   };
 
   const handleCloseAttachment = () => {
     setSelectedAttachment(null);
+  };
+
+  const attachmentTypes = [
+    { id: 0, label: 'Фото' },
+    { id: 1, label: 'Видео' },
+    { id: 2, label: 'Аудио' },
+    { id: 3, label: 'Голосовые' },
+    { id: 4, label: 'Документы' }
+  ];
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'photo': return 'Фото';
+      case 'video': return 'Видео';
+      case 'audio': return 'Аудио';
+      case 'audio_message': return 'Голосовые';
+      case 'doc': return 'Документы';
+      default: return type;
+    }
+  };
+
+  const renderAttachment = (att: Attachment, i: number) => {
+    switch (att.type) {
+      case 'photo':
+        return att.attachmentInfo?.url ? (
+          <div 
+            className="masonry-item" 
+            key={att.id || i}
+            data-attachment-id={att.attachmentInfo.id}
+            data-owner-id={att.attachmentInfo.ownerId}
+            data-access-key={att.attachmentInfo.accessKey}
+            data-message-id={att.messageId}
+            data-from-id={att.fromId}
+            data-date={att.date}
+            data-is-forwarded={att.isForwarded}
+            data-width={att.attachmentInfo.width}
+            data-height={att.attachmentInfo.height}
+            onClick={() => handleAttachmentClick(att)}
+          >
+            <img 
+              src={att.attachmentInfo.url} 
+              alt="preview" 
+              className="loading"
+              onLoad={(e) => {
+                e.currentTarget.classList.remove('loading');
+                e.currentTarget.classList.add('loaded');
+              }}
+            />
+            <div className="masonry-item-type">Фото</div>
+          </div>
+        ) : null;
+
+      case 'video':
+        return (
+          <div 
+            className="masonry-item video-item" 
+            key={att.id || i}
+            onClick={() => handleAttachmentClick(att)}
+          >
+            <div className="video-preview">
+              <div className="video-duration">
+                {Math.floor(att.attachmentInfo?.duration || 0 / 60)}:{(att.attachmentInfo?.duration || 0 % 60).toString().padStart(2, '0')}
+              </div>
+              <div className="video-play-icon">▶</div>
+            </div>
+            <div className="video-info">
+              <div className="video-title">{att.attachmentInfo?.title || 'Без названия'}</div>
+              {att.attachmentInfo?.description && (
+                <div className="video-description">{att.attachmentInfo.description}</div>
+              )}
+            </div>
+            <div className="masonry-item-type">Видео</div>
+          </div>
+        );
+
+      case 'audio':
+        return (
+          <div 
+            className="masonry-item audio-item" 
+            key={att.id || i}
+            onClick={() => handleAttachmentClick(att)}
+          >
+            <div className="audio-info">
+              <div className="audio-title">{att.attachmentInfo?.title || 'Без названия'}</div>
+              {att.attachmentInfo?.description && (
+                <div className="audio-description">{att.attachmentInfo.description}</div>
+              )}
+            </div>
+            <div className="masonry-item-type">Аудио</div>
+          </div>
+        );
+
+      case 'audio_message':
+        return (
+          <div 
+            className="masonry-item audio-message-item" 
+            key={att.id || i}
+            onClick={() => handleAttachmentClick(att)}
+          >
+            <div className="audio-message-info">
+              <div className="audio-message-duration">
+                {Math.floor(att.attachmentInfo?.duration || 0 / 60)}:{(att.attachmentInfo?.duration || 0 % 60).toString().padStart(2, '0')}
+              </div>
+              <div className="audio-message-play-icon">▶</div>
+            </div>
+            <div className="masonry-item-type">Голосовое</div>
+          </div>
+        );
+
+      case 'doc':
+        return (
+          <div 
+            className="masonry-item doc-item" 
+            key={att.id || i}
+            onClick={() => handleAttachmentClick(att)}
+          >
+            <div className="doc-info">
+              <div className="doc-title">{att.attachmentInfo?.title || 'Без названия'}</div>
+              {att.attachmentInfo?.description && (
+                <div className="doc-description">{att.attachmentInfo.description}</div>
+              )}
+            </div>
+            <div className="masonry-item-type">Документ</div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
@@ -343,43 +487,29 @@ export default function MainPage() {
               {selectedChatId ? chats.find(c => c.id === selectedChatId)?.name || '' : ''}
             </h1>
           </div>
+          {selectedChatId && (
+            <div className="attachments-filters">
+              {attachmentTypes.map(type => (
+                <button
+                  key={type.id}
+                  className={`filter-button ${selectedType === type.id ? 'active' : ''}`}
+                  onClick={() => setSelectedType(type.id)}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div
             style={needScroll ? {maxHeight:'80vh', overflowY:'auto'} : {overflowY:'auto'}}
             ref={attachmentsRef}
             onScroll={handleAttachmentsScroll}
           >
             <div className="masonry-grid">
-              {attachments.filter(att => att.type === 'photo' && att.attachmentInfo?.url).length === 0 && !loadingAttachments && (
-                <div style={{color:'#aaa',textAlign:'center',width:'100%'}}>Нет фотографий</div>
+              {attachments.length === 0 && !loadingAttachments && (
+                <div style={{color:'#aaa',textAlign:'center',width:'100%'}}>Нет вложений</div>
               )}
-              {attachments.map((att, i) => (
-                att.type === 'photo' && att.attachmentInfo?.url ? (
-                  <div 
-                    className="masonry-item" 
-                    key={att.id || i}
-                    data-attachment-id={att.attachmentInfo.id}
-                    data-owner-id={att.attachmentInfo.ownerId}
-                    data-access-key={att.attachmentInfo.accessKey}
-                    data-message-id={att.messageId}
-                    data-from-id={att.fromId}
-                    data-date={att.date}
-                    data-is-forwarded={att.isForwarded}
-                    data-width={att.attachmentInfo.width}
-                    data-height={att.attachmentInfo.height}
-                    onClick={() => handleAttachmentClick(att)}
-                  >
-                    <img 
-                      src={att.attachmentInfo.url} 
-                      alt="preview" 
-                      className="loading"
-                      onLoad={(e) => {
-                        e.currentTarget.classList.remove('loading');
-                        e.currentTarget.classList.add('loaded');
-                      }}
-                    />
-                  </div>
-                ) : null
-              ))}
+              {attachments.map((att, i) => renderAttachment(att, i))}
               {loadingAttachments && (
                 <div className="loading-indicator">
                   Загрузка
