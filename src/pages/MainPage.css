@@ -15,10 +15,6 @@
     background: #ffffff;
     border-bottom: 1px solid #ddd;
 }
-.header-buttons {
-    display: flex;
-    gap: 12px;
-}
 .connect-btn {
     background: #0077ff;
     color: white;
@@ -26,23 +22,6 @@
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
-}
-.logout-btn {
-    background: #ff3b30;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-.connect-btn:hover:not(:disabled),
-.logout-btn:hover:not(:disabled) {
-    opacity: 0.9;
-}
-.connect-btn:disabled,
-.logout-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 .app {
     display: flex;
@@ -71,7 +50,43 @@
     padding: 10px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: dialogAppear 0.3s ease forwards;
 }
+
+@keyframes dialogAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dialog:nth-child(1) { animation-delay: 0.05s; }
+.dialog:nth-child(2) { animation-delay: 0.1s; }
+.dialog:nth-child(3) { animation-delay: 0.15s; }
+.dialog:nth-child(4) { animation-delay: 0.2s; }
+.dialog:nth-child(5) { animation-delay: 0.25s; }
+.dialog:nth-child(6) { animation-delay: 0.3s; }
+.dialog:nth-child(7) { animation-delay: 0.35s; }
+.dialog:nth-child(8) { animation-delay: 0.4s; }
+.dialog:nth-child(9) { animation-delay: 0.45s; }
+.dialog:nth-child(10) { animation-delay: 0.5s; }
+.dialog:nth-child(11) { animation-delay: 0.55s; }
+.dialog:nth-child(12) { animation-delay: 0.6s; }
+.dialog:nth-child(13) { animation-delay: 0.65s; }
+.dialog:nth-child(14) { animation-delay: 0.7s; }
+.dialog:nth-child(15) { animation-delay: 0.75s; }
+.dialog:nth-child(16) { animation-delay: 0.8s; }
+.dialog:nth-child(17) { animation-delay: 0.85s; }
+.dialog:nth-child(18) { animation-delay: 0.9s; }
+.dialog:nth-child(19) { animation-delay: 0.95s; }
+.dialog:nth-child(20) { animation-delay: 1s; }
+
 .dialog:hover {
     background-color: #f5f5f5;
 }
@@ -80,7 +95,23 @@
     height: 40px;
     border-radius: 50%;
     margin-right: 10px;
+    opacity: 0;
+    transform: scale(0.8);
+    animation: avatarAppear 0.3s ease forwards;
+    animation-delay: inherit;
 }
+
+@keyframes avatarAppear {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
 .dialog-info {
     flex: 1;
     display: flex;
@@ -284,5 +315,38 @@
 @media (max-width: 600px) {
     .masonry-grid {
         column-count: 1;
+    }
+}
+.loading-indicator {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.loading-dot {
+    width: 8px;
+    height: 8px;
+    background: #5181b8;
+    border-radius: 50%;
+    animation: loadingDot 1.4s infinite ease-in-out;
+}
+
+.loading-dot:nth-child(1) { animation-delay: 0s; }
+.loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes loadingDot {
+    0%, 80%, 100% { 
+        transform: scale(0.6);
+        opacity: 0.6;
+    }
+    40% { 
+        transform: scale(1);
+        opacity: 1;
     }
 }

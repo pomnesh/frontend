@@ -63,7 +63,7 @@ export default function MainPage() {
     } finally {
       setLoadingChats(false);
     }
-  }, [loadingChats]);
+  }, []);
 
   const loadAttachments = useCallback(async (peerId: number, startFrom: string | null) => {
     if (loadingAttachments || !hasMoreAttachments) return;
@@ -94,7 +94,7 @@ export default function MainPage() {
     } finally {
       setLoadingAttachments(false);
     }
-  }, [loadingAttachments, hasMoreAttachments]);
+  }, [hasMoreAttachments]);
 
   useEffect(() => {
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -271,7 +271,14 @@ export default function MainPage() {
               </div>
             </div>
           ))}
-          {loadingChats && <div style={{textAlign: 'center', padding: 10}}>Загрузка...</div>}
+          {loadingChats && (
+            <div className="loading-indicator">
+              Загрузка
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+              <div className="loading-dot"></div>
+            </div>
+          )}
         </aside>
         <main className="main">
           <div className="header">
@@ -295,7 +302,14 @@ export default function MainPage() {
                   </div>
                 ) : null
               ))}
-              {loadingAttachments && <div style={{textAlign:'center',width:'100%',padding:10}}>Загрузка...</div>}
+              {loadingAttachments && (
+                <div className="loading-indicator">
+                  Загрузка
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                  <div className="loading-dot"></div>
+                </div>
+              )}
             </div>
           </div>
         </main>
