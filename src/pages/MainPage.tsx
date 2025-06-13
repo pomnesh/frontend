@@ -65,6 +65,15 @@ export default function MainPage() {
     }
   }, []);
 
+  const preloadImages = (items: Attachment[]) => {
+    items.forEach(item => {
+      if (item.type === 'photo' && item.attachmentInfo?.url) {
+        const img = new Image();
+        img.src = item.attachmentInfo.url;
+      }
+    });
+  };
+
   const loadAttachments = useCallback(async (peerId: number, startFrom: string | null) => {
     if (loadingAttachments || !hasMoreAttachments) return;
     setLoadingAttachments(true);
@@ -76,7 +85,13 @@ export default function MainPage() {
     try {
       const response = await apiClient.request(url, { method: 'GET' });
       if (response?.payload?.items) {
-        setAttachments(prev => !startFrom ? response.payload.items : [...prev, ...response.payload.items]);
+        preloadImages(response.payload.items);
+        
+        setAttachments(prev => {
+          if (!startFrom) return response.payload.items;
+          return [...prev, ...response.payload.items];
+        });
+
         if (response.payload.nextFrom) {
           setNextFrom(response.payload.nextFrom);
           setHasMoreAttachments(true);
@@ -302,7 +317,15 @@ export default function MainPage() {
               {attachments.map((att, i) => (
                 att.type === 'photo' && att.attachmentInfo?.url ? (
                   <div className="masonry-item" key={att.id || i}>
-                    <img src={att.attachmentInfo.url} alt="preview" />
+                    <img 
+                      src={att.attachmentInfo.url} 
+                      alt="preview" 
+                      className="loading"
+                      onLoad={(e) => {
+                        e.currentTarget.classList.remove('loading');
+                        e.currentTarget.classList.add('loaded');
+                      }}
+                    />
                   </div>
                 ) : null
               ))}
