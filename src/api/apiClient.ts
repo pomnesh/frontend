@@ -32,9 +32,9 @@ class ApiClient {
     const response = await fetch(endpoints.refresh, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ refreshToken })
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${refreshToken}`
+      }
     });
 
     if (!response.ok) throw new Error('Failed to refresh token');
