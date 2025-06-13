@@ -132,12 +132,17 @@
 }
 .main {
     flex: 1;
-    padding: 24px;
+    padding: 0;
     overflow-y: auto;
 }
 .header {
-    margin-bottom: 24px;
+    padding: 20px 24px 8px 24px;
 }
+
+.header:not(:empty) {
+    border-bottom-color: #2a2a2a;
+}
+
 .filters {
     display: flex;
     gap: 10px;
@@ -519,10 +524,9 @@
 
 .attachments-filters {
     display: flex;
-    gap: 12px;
-    padding: 16px 0;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #2a2a2a;
+    gap: 8px;
+    padding: 0 24px 8px 24px;
+    border-bottom: none;
 }
 
 .filter-button {
@@ -560,7 +564,7 @@
     backdrop-filter: blur(4px);
 }
 
-.video-item, .audio-item, .audio-message-item, .doc-item {
+.video-item {
     aspect-ratio: auto;
     min-height: 120px;
     background: #242424;
@@ -568,6 +572,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .video-preview {
@@ -683,4 +689,11 @@
     align-items: center;
     justify-content: center;
     font-size: 16px;
+}
+
+.attachments-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
 }
