@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import "./MainPage.css";
 import { createMainPageHandlers, VkData } from './MainPage.handlers.ts';
 import { apiClient } from '../api/apiClient.ts';
@@ -23,8 +23,6 @@ interface Attachment {
   };
 }
 
-const filters = ["All", "Photos", "Videos", "Docs", "Audio", "Links"];
-const cards = ["🌄", "🎥", "📄", "🎵", "🔗", "🎵"];
 const PAGE_SIZE = 20;
 
 export default function MainPage() {
@@ -50,36 +48,7 @@ export default function MainPage() {
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const attachmentsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=');
-      acc[key] = value;
-      return acc;
-    }, {} as Record<string, string>);
-
-    if (cookies.bearer_token && cookies.refresh_token) {
-      setShowModal(false);
-      setChats([]);
-      setOffset(0);
-      setTotalChats(0);
-      loadChats(0);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedChatId) {
-      setAttachments([]);
-      setNextFrom(null);
-      setHasMoreAttachments(true);
-      loadAttachments(selectedChatId, null);
-    } else {
-      setAttachments([]);
-      setNextFrom(null);
-      setHasMoreAttachments(true);
-    }
-  }, [selectedChatId]);
-
-  const loadChats = async (newOffset: number) => {
+  const loadChats = useCallback(async (newOffset: number) => {
     if (loadingChats) return;
     setLoadingChats(true);
     try {
@@ -94,9 +63,9 @@ export default function MainPage() {
     } finally {
       setLoadingChats(false);
     }
-  };
+  }, [loadingChats]);
 
-  const loadAttachments = async (peerId: number, startFrom: string | null) => {
+  const loadAttachments = useCallback(async (peerId: number, startFrom: string | null) => {
     if (loadingAttachments || !hasMoreAttachments) return;
     setLoadingAttachments(true);
     const count = 20;
@@ -125,7 +94,36 @@ export default function MainPage() {
     } finally {
       setLoadingAttachments(false);
     }
-  };
+  }, [loadingAttachments, hasMoreAttachments]);
+
+  useEffect(() => {
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    if (cookies.bearer_token && cookies.refresh_token) {
+      setShowModal(false);
+      setChats([]);
+      setOffset(0);
+      setTotalChats(0);
+      loadChats(0);
+    }
+  }, [loadChats]);
+
+  useEffect(() => {
+    if (selectedChatId) {
+      setAttachments([]);
+      setNextFrom(null);
+      setHasMoreAttachments(true);
+      loadAttachments(selectedChatId, null);
+    } else {
+      setAttachments([]);
+      setNextFrom(null);
+      setHasMoreAttachments(true);
+    }
+  }, [selectedChatId, loadAttachments]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
@@ -159,6 +157,14 @@ export default function MainPage() {
     vkData
   );
 
+  const handleLoginSuccess = async () => {
+    setShowModal(false);
+    setChats([]);
+    setOffset(0);
+    setTotalChats(0);
+    await loadChats(0);
+  };
+
   return (
     <div className="app-wrapper">
       {showModal && (
@@ -181,7 +187,10 @@ export default function MainPage() {
             />
             {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
             <button 
-              onClick={() => handlers.handleSubmit(username, password)}
+              onClick={async () => {
+                await handlers.handleSubmit(username, password);
+                await handleLoginSuccess();
+              }}
               disabled={isLoading}
             >
               {isLoading ? 'Загрузка...' : 'Продолжить'}
@@ -227,13 +236,22 @@ export default function MainPage() {
       )}
       <header className="site-header">
         <h1>VK Attachments Viewer</h1>
-        <button 
-          className="connect-btn" 
-          onClick={handlers.handleVkModalOpen}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Загрузка...' : 'Connect VK'}
-        </button>
+        <div className="header-buttons">
+          <button 
+            className="connect-btn" 
+            onClick={handlers.handleVkModalOpen}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Загрузка...' : 'Connect VK'}
+          </button>
+          <button 
+            className="logout-btn" 
+            onClick={handlers.handleLogout}
+            disabled={isLoading}
+          >
+            Выйти
+          </button>
+        </div>
       </header>
       <div className="app">
         <aside className="sidebar" ref={sidebarRef} onScroll={handleScroll} style={{overflowY: 'auto', maxHeight: '100vh'}}>

@@ -12,6 +12,7 @@ export interface MainPageHandlers {
   handleVkDataChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleVkDataSubmit: (vkData: VkData) => Promise<void>;
   handleVkModalOpen: () => Promise<void>;
+  handleLogout: () => void;
 }
 
 export const createMainPageHandlers = (
@@ -96,11 +97,18 @@ export const createMainPageHandlers = (
     }
   };
 
+  const handleLogout = () => {
+    document.cookie = 'bearer_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    window.location.reload();
+  };
+
   return {
     handleSubmit,
     handleVkModalClose,
     handleVkDataChange,
     handleVkDataSubmit,
-    handleVkModalOpen
+    handleVkModalOpen,
+    handleLogout
   };
 }; 
