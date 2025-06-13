@@ -31,6 +31,8 @@ interface Attachment {
     duration?: number;
     photoUrl?: string | null;
     artist?: string;
+    ext?: string;
+    size?: number;
   };
   messageId: number | null;
   fromId: number | null;
@@ -241,7 +243,6 @@ export default function MainPage() {
     { id: 0, label: 'Фото' },
     { id: 1, label: 'Видео' },
     { id: 2, label: 'Аудио' },
-    { id: 3, label: 'Голосовые' },
     { id: 4, label: 'Документы' }
   ];
 
@@ -348,12 +349,17 @@ export default function MainPage() {
             key={att.id || i}
             onClick={() => handleAttachmentClick(att)}
           >
-            <div className="doc-info">
-              <div className="doc-title">{att.attachmentInfo?.title || 'Без названия'}</div>
-              {att.attachmentInfo?.description && (
-                <div className="doc-description">{att.attachmentInfo.description}</div>
-              )}
+            <div className="doc-neutral-preview">
+              <span className="doc-neutral-icon">📄</span>
             </div>
+            <div className="doc-title">{att.attachmentInfo?.title || 'Без названия'}</div>
+            <div className="doc-meta">
+              {att.attachmentInfo?.ext && <span className="doc-ext">.{att.attachmentInfo.ext}</span>}
+              {att.attachmentInfo?.size !== undefined && <span className="doc-size">{(att.attachmentInfo.size > 1024*1024 ? (att.attachmentInfo.size/1024/1024).toFixed(2)+' МБ' : (att.attachmentInfo.size/1024).toFixed(1)+' КБ')}</span>}
+            </div>
+            {att.attachmentInfo?.url && (
+              <a className="doc-download" href={att.attachmentInfo.url} target="_blank" rel="noopener noreferrer">Открыть/скачать</a>
+            )}
           </div>
         );
 
@@ -539,6 +545,13 @@ export default function MainPage() {
                   </div>
                 </div>
               )}
+              {selectedAttachment.type === 'doc' && (
+                <div className="attachment-modal-image-container">
+                  <div className="doc-neutral-preview" style={{marginBottom: 0}}>
+                    <span className="doc-neutral-icon">📄</span>
+                  </div>
+                </div>
+              )}
               <div className="attachment-modal-info">
                 <h3>Информация</h3>
                 <div className="info-grid">
@@ -550,6 +563,31 @@ export default function MainPage() {
                         {selectedAttachment.attachmentInfo?.title || 'Без названия'}
                       </span>
                     </div>
+                  ) : selectedAttachment.type === 'doc' ? (
+                    <>
+                      <div className="info-item">
+                        <span className="info-label">Файл</span>
+                        <span className="info-value">{selectedAttachment.attachmentInfo?.title || 'Без названия'}</span>
+                      </div>
+                      {selectedAttachment.attachmentInfo?.ext && (
+                        <div className="info-item">
+                          <span className="info-label">Расширение</span>
+                          <span className="info-value">.{selectedAttachment.attachmentInfo.ext}</span>
+                        </div>
+                      )}
+                      {selectedAttachment.attachmentInfo?.size !== undefined && (
+                        <div className="info-item">
+                          <span className="info-label">Размер</span>
+                          <span className="info-value">{selectedAttachment.attachmentInfo.size > 1024*1024 ? (selectedAttachment.attachmentInfo.size/1024/1024).toFixed(2)+' МБ' : (selectedAttachment.attachmentInfo.size/1024).toFixed(1)+' КБ'}</span>
+                        </div>
+                      )}
+                      {selectedAttachment.attachmentInfo?.url && (
+                        <div className="info-item">
+                          <span className="info-label">Ссылка</span>
+                          <span className="info-value"><a href={selectedAttachment.attachmentInfo.url} target="_blank" rel="noopener noreferrer">Открыть/скачать</a></span>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="info-item">
                       <span className="info-label">Размеры</span>
