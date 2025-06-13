@@ -15,14 +15,32 @@
     background: #ffffff;
     border-bottom: 1px solid #ddd;
 }
-.connect-btn {
-    background: #0077ff;
-    color: white;
+.connect-btn, .logout-btn {
+    background: #3a7bfd;
+    color: #fff;
     border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+    border-radius: 18px;
+    padding: 10px 32px;
+    font-size: 17px;
+    font-weight: 500;
     cursor: pointer;
+    margin-left: 0;
+    margin-right: 16px;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    box-shadow: 0 1px 4px rgba(58,123,253,0.08);
+    outline: none;
+    display: inline-block;
 }
+
+.connect-btn:last-child, .logout-btn:last-child {
+    margin-right: 0;
+}
+
+.connect-btn:hover, .logout-btn:hover {
+    background: #2556b8;
+    color: #fff;
+}
+
 .app {
     display: flex;
     flex: 1;

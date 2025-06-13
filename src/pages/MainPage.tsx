@@ -448,7 +448,7 @@ export default function MainPage() {
             onClick={handlers.handleVkModalOpen}
             disabled={isLoading}
           >
-            {isLoading ? 'Загрузка...' : 'Connect VK'}
+            {isLoading ? 'Загрузка...' : 'Настройки'}
           </button>
           <button 
             className="logout-btn" 
